@@ -12,8 +12,17 @@ Note: this problem does not require the "compounding interest" formula from the 
 
 """
 
-### Your code here ###
+#Setting the variable for the interest rate
+interest_rate = 0.05
 
-in_state_gift = 0
+#Setting the variable for both the in-state and out-of-state total costs
+in_state_total_cost = 30792
+out_state_total_cost = 47882
 
-out_state_gift = 0
+#Calculating gift amounts
+in_state_gift = in_state_total_cost / interest_rate
+out_state_gift = out_state_total_cost / interest_rate
+
+#Display the results
+print("In-state gift amount: $", in_state_gift)
+print("Out-of-state gift amount: $", out_state_gift)
