@@ -23,9 +23,18 @@ upper_bound = 1000
 
 # generate a random lists of integers
 nums = generate_random_int_list(max_length, upper_bound)
-
+print(nums)
 # create two variables to hold the final answers
 num_evens = 0
 num_odds = 0
 
-### YOUR CODE BEGINS HERE ###
+#Create a loop to check for odds and even
+for n in nums:
+    #Checking for evens
+    if n % 2 == 0:
+        num_evens=num_evens+1
+    #If not even, then number is odd
+    else:
+        num_odds=num_odds+1
+
+print(num_odds, num_evens)
