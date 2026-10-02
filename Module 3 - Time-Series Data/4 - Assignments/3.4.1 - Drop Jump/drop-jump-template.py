@@ -33,10 +33,10 @@ def main(full_path_to_file):
     # Step 1: Establish a baseline by examining the force data the after for first ~20 points
 
     # set an amount of time to average and find the baseline
-    baseline_length = 0 ### your code here ###
+    baseline_length = 20 ### your code here ###
 
     # over the baseline, determine the average signal value
-    baseline = 0 ### your code here ###
+    baseline = np.mean(force_plate[:baseline_length]) ### your code here ###
 
     # Step 2: After the baseline, find the first point that rises above that value
     # given some acceptable delta
@@ -61,7 +61,7 @@ def main(full_path_to_file):
         if value > baseline + delta:
             # mark this index as the landing point
 
-            ### your code here ###
+            first_landing_index = index
 
             # break out of the loop to end iterating
             break
@@ -84,9 +84,11 @@ def main(full_path_to_file):
     # since we know the take off point will be afterwards.
     for index in range(first_landing_index + 10, len(force_plate_list)):
 
-        ### your code here ###
-        delete_me = 0
+        value=force_plate_list[index]
 
+        if value <= baseline+delta:
+            take_off_index = index
+            break
 
     # Step 4: The plate should remain near baseline while the user is in the air (there is no load).
     # Once it rises above the baseline again, the user has landed. Consider this the second landing.
@@ -100,17 +102,20 @@ def main(full_path_to_file):
 
     # walk through the list but start a few moment after the takeoff point
     for index in range(take_off_index + 10, len(force_plate_list)):
+        value=force_plate_list[index]
 
-        ### your code here ###
-        delete_me = 0
+        if value > baseline+delta:
+            second_landing_index=index
+
+            break
 
     # Step 5: calculate the time of contact on plate and time of flight in air
 
     # calculate tc and convert to seconds using the sampling rate
-    time_of_contact = 0 ### your code here ###
+    time_of_contact = (take_off_index-first_landing_index)/sampling_rate  ### your code here ###
 
     # calculate tf and convert to seconds using the sampling rate
-    time_of_flight = 0 ### your code here ###
+    time_of_flight = (second_landing_index-take_off_index)/sampling_rate ### your code here ###
 
     # Step 6: Calculate the Reactive Strength Index
 
@@ -118,7 +123,7 @@ def main(full_path_to_file):
     g = constants.g
 
     # RSI = (g*tf^2) / (8*tc)
-    RSI = 0 ### your code here ###
+    RSI = (g*pow(time_of_flight,2))/(8*time_of_contact) ### your code here ###
 
     ### Do not modify below this line ###
 
@@ -136,7 +141,7 @@ if __name__ == "__main__":
     filename = "FP1.txt"
 
     # load force plate data (this path may change based upon where you place this file in your project)
-    path_to_data_folder = "../../../data/drop-jump/force-plate/"
+    path_to_data_folder = "data/drop-jump/force-plate/"
 
     ### Do not modify below this line ###
 
