@@ -68,3 +68,84 @@ def parse_nyt_data(file_path=''):
     return data
 
 ### YOUR CODE HERE ###
+#Finding first cases in data
+def find_first_case(data, county_name, state_name):
+    for entry in data:
+        date, county, state, fips, cases, deaths = entry
+        if county == county_name and state == state_name and cases > 0:
+            return date
+
+#Parsing the data from the CSV file
+data = parse_nyt_data(r"data\covid\us-counties.csv")
+
+#Find first case in specific county
+harrisonburg_first_case = find_first_case(data, "Harrisonburg city", "Virginia")
+rockingham_first_case = find_first_case(data, "Rockingham", "Virginia")
+
+#Printing first case results
+print(f"Harrisonburg first case: {harrisonburg_first_case}")
+print(f"Rockingham first case: {rockingham_first_case}")
+
+#Finding greatest number of cases in a day 
+def find_max_new_cases(data, county_name, state_name):
+    target_data= []
+    #Finding data from specific county and state
+    for entry in data:
+        date, county, state, fips, cases, deaths = entry
+        if county == county_name and state == state_name:
+            target_data.append(entry)
+    #Tracking the maximum number of new cases
+    max_new_cases = -1
+    max_new_cases_date = None
+    previous_cases = 0
+    for entry in target_data:
+        date, county, state, fips, cases, deaths = entry
+        new_cases = cases - previous_cases
+        if new_cases > max_new_cases:
+            max_new_cases = new_cases
+            max_new_cases_date = date
+        previous_cases = cases
+    return max_new_cases_date, max_new_cases
+
+#Printing results for greatest number of new cases in a day
+harrisonburg_max_new_cases_date, harrisonburg_max_new_cases = find_max_new_cases(data, "Harrisonburg city", "Virginia")
+rockingham_max_new_cases_date, rockingham_max_new_cases = find_max_new_cases(data, "Rockingham", "Virginia")
+
+print(f"Harrisonburg max new cases: {harrisonburg_max_new_cases} on {harrisonburg_max_new_cases_date}")
+print(f"Rockingham max new cases: {rockingham_max_new_cases} on {rockingham_max_new_cases_date}")
+
+#Finding greatest number of new cases in a 7 day period 
+def find_worst_7_day_period(data, county_name, state_name):
+    target_data= []
+    #Finding data from specific county and state
+    for entry in data:
+        date, county, state, fips, cases, deaths = entry
+        if county == county_name and state == state_name:
+            target_data.append(entry)
+    #Calculate daily new cases
+    daily_new_cases = []
+    previous_cases = 0
+    for entry in target_data:
+        date, county, state, fips, cases, deaths = entry
+        new_cases = cases - previous_cases
+        daily_new_cases.append((date, new_cases))
+        previous_cases = cases
+    #Adding a 7 day window
+    max_new_cases_7_day = -1
+    max_new_cases_7_day_start_date = None
+    max_new_cases_7_day_end_date = None
+    for i in range(len(daily_new_cases) - 6):
+        window=daily_new_cases[i:i+7]
+        new_cases_7_day = sum(day[1] for day in window)
+        if new_cases_7_day > max_new_cases_7_day:
+            max_new_cases_7_day = new_cases_7_day
+            max_new_cases_7_day_start_date = window[0][0]
+            max_new_cases_7_day_end_date = window[-1][0]
+    return max_new_cases_7_day_start_date, max_new_cases_7_day_end_date, max_new_cases_7_day
+
+#Printing results for greatest number of new cases in a 7 day period
+harrisonburg_worst_7_day_start_date, harrisonburg_worst_7_day_end_date, harrisonburg_worst_7_day_cases = find_worst_7_day_period(data, "Harrisonburg city", "Virginia")
+rockingham_worst_7_day_start_date, rockingham_worst_7_day_end_date, rockingham_worst_7_day_cases = find_worst_7_day_period(data, "Rockingham", "Virginia")
+
+print(f"Harrisonburg worst 7-day period: {harrisonburg_worst_7_day_cases} from {harrisonburg_worst_7_day_start_date} to {harrisonburg_worst_7_day_end_date}")
+print(f"Rockingham worst 7-day period: {rockingham_worst_7_day_cases} from {rockingham_worst_7_day_start_date} to {rockingham_worst_7_day_end_date}")
