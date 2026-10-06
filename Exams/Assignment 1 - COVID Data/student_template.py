@@ -70,6 +70,13 @@ def parse_nyt_data(file_path=''):
 ### YOUR CODE HERE ###
 #Finding first cases in data
 def find_first_case(data, county_name, state_name):
+    """Finds the date of the first confirmed positive case for a given county and state.
+    :param data: List of parsed tuples (date, county, state, fips, cases, deaths)
+    :param county_name: Name of the target county/city (exact match)
+    :param state_name: Name of the target state (exact match)
+    :return: String representing the date of the first case
+    """
+    #Runs through every entry sequentially to find first case in specific county and state
     for entry in data:
         date, county, state, fips, cases, deaths = entry
         if county == county_name and state == state_name and cases > 0:
@@ -88,24 +95,33 @@ print(f"Rockingham first case: {rockingham_first_case}")
 
 #Finding greatest number of cases in a day 
 def find_max_new_cases(data, county_name, state_name):
-    target_data= []
+   """Calculates daily new cases by differencing cumulative totals and identifies the single day with the maximum increase.
+   :param data: List of parsed tuples
+   :param county_name: Target county/city name
+   :param state_name: Target state name
+   :return: Tuple containing (peak_date, max_daily_cases)
+   """
+   target_data= []
     #Finding data from specific county and state
-    for entry in data:
+   for entry in data:
         date, county, state, fips, cases, deaths = entry
         if county == county_name and state == state_name:
             target_data.append(entry)
-    #Tracking the maximum number of new cases
-    max_new_cases = -1
-    max_new_cases_date = None
-    previous_cases = 0
-    for entry in target_data:
+   #Tracking variables to findthe maximum number of new cases
+   max_new_cases = -1
+   max_new_cases_date = None
+   previous_cases = 0
+   #Calulcate daily new cases
+   for entry in target_data:
         date, county, state, fips, cases, deaths = entry
         new_cases = cases - previous_cases
+        #Update maximum if current new cases are greater than the previous maximum
         if new_cases > max_new_cases:
             max_new_cases = new_cases
             max_new_cases_date = date
+        #Saves the current cumulative cases for the next iteration
         previous_cases = cases
-    return max_new_cases_date, max_new_cases
+   return max_new_cases_date, max_new_cases
 
 #Printing results for greatest number of new cases in a day
 harrisonburg_max_new_cases_date, harrisonburg_max_new_cases = find_max_new_cases(data, "Harrisonburg city", "Virginia")
@@ -116,13 +132,19 @@ print(f"Rockingham max new cases: {rockingham_max_new_cases} on {rockingham_max_
 
 #Finding greatest number of new cases in a 7 day period 
 def find_worst_7_day_period(data, county_name, state_name):
+    """Identifies the 7-day period with the highest total number of new cases using a sliding window.
+    :param data: List of parsed tuples
+    :param county_name: Target county/city name
+    :param state_name: Target state name
+    :return: Tuple containing (start_date, end_date, total_cases_in_period)
+    """
     target_data= []
     #Finding data from specific county and state
     for entry in data:
         date, county, state, fips, cases, deaths = entry
         if county == county_name and state == state_name:
             target_data.append(entry)
-    #Calculate daily new cases
+    #Calculate daily new cases and sort into a list
     daily_new_cases = []
     previous_cases = 0
     for entry in target_data:
@@ -134,9 +156,11 @@ def find_worst_7_day_period(data, county_name, state_name):
     max_new_cases_7_day = -1
     max_new_cases_7_day_start_date = None
     max_new_cases_7_day_end_date = None
+    #Loop through all possible 7-day windows in the daily new cases list
     for i in range(len(daily_new_cases) - 6):
         window=daily_new_cases[i:i+7]
         new_cases_7_day = sum(day[1] for day in window)
+        #If this window has greatest sum, update max_new_cases_7_day and the corresponding start and end dates
         if new_cases_7_day > max_new_cases_7_day:
             max_new_cases_7_day = new_cases_7_day
             max_new_cases_7_day_start_date = window[0][0]
