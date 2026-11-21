@@ -27,7 +27,7 @@ ref_df=pd.read_csv(ref_path, skiprows=[1])
 ref_df["Frequency"]=ref_df["Frequency"].astype(float)
 
 #Load and read the audio file
-path="../../data/musical-notes/Guitar-note-5.wav"
+path="../../data/musical-notes/Guitar-note-1.wav"
 sample_rate, audio_data = wavfile.read(path)
 
 
@@ -109,32 +109,22 @@ plt.show()
 #Isolate a slice of the filtered signal
 detect_end=min(steady_start+int(0.25*sample_rate), active_region[-1]) 
 detect_signal=Filtered_signal[steady_start:detect_end]
-detect_time=time[steady_start:detect_end]
 
-#Find one peak per wave cycle
-cycle_peaks, _=signal.find_peaks(detect_signal, height=0.5*np.max(detect_signal), prominence=0.5*np.max(detect_signal), distance=min_dist)
-
-#Find time interval between peaks 
-peak_time=detect_time[cycle_peaks]
-period=np.diff(peak_time)
-typical_period=np.median(period)
-period=period[np.abs(period-typical_period)<0.3*typical_period]
-avg_period=np.mean(period)
-peak_freq=1/avg_period
-
-#FFT Cross-Check
+#Create window and perform FFT
 fft_window=detect_signal*np.hanning(len(detect_signal))
 n_fft=1<<20
 spectrum=np.abs(np.fft.rfft(fft_window, n=n_fft))
 fft_freqs=np.fft.rfftfreq(n_fft, 1/sample_rate)
-in_range=(fft_freqs>=ref_df["Frequency"].min()) & (fft_freqs<=ref_df["Frequency"].max())
-fft_freq=fft_freqs[np.argmax(spectrum*in_range)]
 
-#Compare FFT peak to peak spacing result
-if abs(peak_freq/fft_freq-2)<0.1:
-    detected_freq=peak_freq/2
-else:
-    detected_freq=peak_freq
+#Limit to musical note range
+in_range=(fft_freqs>=ref_df["Frequency"].min()) & (fft_freqs<=ref_df["Frequency"].max())
+valid_freqs=fft_freqs[in_range]
+valid_spectrum=spectrum[in_range]
+
+#Find peaks and lowest frequency peak is f0
+min_bin_dist=int(20/(sample_rate/n_fft))
+spec_peaks, _ =signal.find_peaks(valid_spectrum, height=0.25*np.max(valid_spectrum), distance=min_bin_dist)
+detected_freq=valid_freqs[spec_peaks][0] 
 
 #Find Matching Note for Detected Frequency
 closest=np.abs(ref_df["Frequency"]-detected_freq).idxmin()
@@ -146,3 +136,11 @@ print("Task 3 Results:")
 print(f"Detected Frequency: {detected_freq:.4f} Hz")
 print(f"Closest Reference Frequency: {ref_freq:.4f} Hz")
 print(f"Detected Musical Note: {detected_note}")
+
+#Print wav file properties
+print("WAV File Properties:")
+print(f"Sample Rate: {sample_rate} Hz")
+print(f"Audio Data Shape: {audio_data.shape}")
+print(f"Audio Data Type: {audio_data.dtype}")
+print(f"Audio Data Min: {audio_data.min()}")
+print(f"Audio Data Max: {audio_data.max()}")
